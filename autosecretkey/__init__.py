@@ -9,7 +9,7 @@ class AutoSecretKey:
             config.write(outfile)
 
     @classmethod
-    def read_config_file(cls, path, create=True):
+    def read_config_file(cls, path, template=None, create=False):
         config = configparser.ConfigParser(interpolation=None)
 
         try:
@@ -18,6 +18,9 @@ class AutoSecretKey:
         except FileNotFoundError:
             if not create:
                 raise
+
+            if template:
+                config.read(template)
             
             cls.write_config_file(path, config)
 
@@ -26,8 +29,8 @@ class AutoSecretKey:
     def write(self):
         self.__class__.write_config_file(self.path, self.config)
 
-    def update(self):
-        self.config = self.__class__.read_config_file(self.path)
+    def update(self, template=None, create=False):
+        self.config = self.__class__.read_config_file(self.path, template, create)
 
     @property
     def secret_key(self):
@@ -41,8 +44,8 @@ class AutoSecretKey:
             
             return new_key
 
-    def __init__(self, path, section="AutoSecretKey", config_key="SecretKey"):
+    def __init__(self, path, section="AutoSecretKey", config_key="SecretKey", template=None, create=True):
         self.path = path
         self.section = section
         self.config_key = config_key
-        self.update()
+        self.update(template, create)

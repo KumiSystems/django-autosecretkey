@@ -8,12 +8,16 @@ and storing it outside of your project's settings.py
 
 1. In your project's settings.py, import the app like so:
 
-   ```from autosecretkey import AutoSecretKey```
+   ```python
+   from autosecretkey import AutoSecretKey
+   ```
 
 2. Still in the settings.py file, replace the existing SECRET_KEY line with
    something like this:
 
-   ```SECRET_KEY = AutoSecretKey(BASE_DIR / "config.ini").secret_key```
+   ```python
+   SECRET_KEY = AutoSecretKey(BASE_DIR / "config.ini").secret_key
+   ```
 
    (N.B.: Of course, this line has to be after the BASE_DIR line.)
 
@@ -30,14 +34,16 @@ For additional security, you may want to store your secret key in a different
 location than your project's base directory. You could, for example, do
 something like this:
 
-```AutoSecretKey("/etc/your_project/configuration")```
+```python
+AutoSecretKey("/etc/your_project/config.ini")
+```
 
 You need to manually make sure that the user your Django project runs as has
 the permission to read and write this file. Running something like this as
 root should do the trick in Linux (replacing "djangouser" with the actual user
 name):
 
-```
+```bash
 mkdir /etc/your_project/
 touch /etc/your_project/configuration
 chown djangouser /etc/your_project/configuration
@@ -50,7 +56,7 @@ AutoSecretKey object.
 
 This is a simple example you could have in your `settings.py`:
 
-```
+```python
 from autosecretkey import AutoSecretKey
 my_config_file = AutoSecretKey(BASE_DIR / "config.ini")
 SECRET_KEY = my_config_file.secret_key
@@ -59,12 +65,30 @@ TIME_ZONE = my_config_file.config["MY_SETTINGS"]["TIME_ZONE"]
 
 For reference, the corresponding `config.ini` might look like this:
 
-```
+```ini
 [AutoSecretKey]
 SecretKey = WellThisIsWhereYouWillFindYourSecretKey
 
 [MY_SETTINGS]
 TIME_ZONE = UTC
+```
+
+You can pass the path to an .ini file to use as a template when first creating
+the file creating your secret key. This file may contain any additional
+settings you want to have in your config file, the SecretKey will then be added
+to that. Note that you must not define a secret key within that template file.
+
+```python
+AutoSecretKey("/etc/myproject/config.ini", template=BASE_DIR/"config.dist.ini")
+```
+
+You can also set the `create` attribute to `False` if you need to make sure
+the config file already exists - you may want to use this to make sure that
+custom settings have already been made. If the file exists but no secret key
+is defined within it, a new secret key will be added to the file.
+
+```python
+AutoSecretKey("config.ini", create=False)
 ```
 
 All methods you can use on any other ConfigParser object can be used on that
